@@ -1,11 +1,7 @@
 #include <ArduinoMqttClient.h>
 #include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
 #include "arduino_secrets.h"
-#include <DHT.h>       //library DHT
-#define DHTPIN D2      //pin DATA konek ke pin 2 Arduino
-#define DHTTYPE DHT11  //tipe sensor DHT11
 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;  // your network SSID (name)
@@ -19,17 +15,12 @@ char pass[] = SECRET_PASS;  // your network password (use for WPA, or use as key
 
 WiFiClientSecure wifiClient;
 MqttClient mqttClient(wifiClient);
-DHT dht(DHTPIN, DHTTYPE);  //set sensor + koneksi pin
 
 const char broker[] = "02fa3ba5f83a4760bc66879c7e081d28.s1.eu.hivemq.cloud";
 int port = 8883;
 const char topic[] = "greenhouse:updated";  // Subscribe to all topics
 const char* greenhouse_key = "2e3ae7b6-eee8-4b48-8871-c0c7c4659b15";
-const int relayPin1 = D1;  // GPIO5
-const int relayPin2 = D3;  // GPIO0
-float humi, temp;          //deklarasi variabel
-const long interval = 5000;
-unsigned long previousMillis = 0;
+const int relayPin1 = D3;  // GPIO0
 
 void setup_wifi() {
   delay(10);
@@ -54,9 +45,7 @@ void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(115200);
   pinMode(relayPin1, OUTPUT);
-  pinMode(relayPin2, OUTPUT);
   digitalWrite(relayPin1, LOW);  // Initialize relay as off
-  digitalWrite(relayPin2, LOW);  // Initialize relay as off
   while (!Serial) {
     ;  // wait for serial port to connect. Needed for native USB port only
   }
@@ -101,21 +90,6 @@ void loop() {
   // call poll() regularly to allow the library to receive MQTT messages and
   // send MQTT keep alives which avoids being disconnected by the broker
   mqttClient.poll();
-  unsigned long currentMillis = millis();
-
-  if (currentMillis - previousMillis >= interval) {
-    // save the last time a message was sent
-    previousMillis = currentMillis;
-    humi = dht.readHumidity();         //baca kelembaban
-    temp = dht.readTemperature();      //baca suhu
-    if (isnan(humi) || isnan(temp)) {  //jika tidak ada hasil
-      Serial.println("DHT11 tidak terbaca... !");
-      return;
-    } else {  //jika ada hasilnya
-      updateGreenhouse((temp < 0 ? temp/-1 : temp), humi);
-      return;
-    }
-  }
 }
 
 void onMqttMessage(int messageSize) {
@@ -152,34 +126,15 @@ void onMqttMessage(int messageSize) {
 
   // Extract values
   const char* greenhouseId = doc["greenhouseId"];
-  bool statusBlower = doc["statusBlower"];
-  bool statusHeater = doc["statusHeater"];
+  bool statusWaterFlow = doc["statusWaterFlow"];
   // Compare greenhouseId with greenhouse_key
   if (strcmp(greenhouseId, greenhouse_key) == 0) {
 
     //handle blower
-    if (statusBlower) {
+    if (statusWaterFlow) {
       digitalWrite(relayPin1, LOW);  // Turn relay 1 off
     } else {
       digitalWrite(relayPin1, HIGH);  // Turn relay 1 on
     }
-
-    // handle heater
-    if (statusHeater) {
-      digitalWrite(relayPin2, LOW);  // Turn relay 2 off
-    } else {
-      digitalWrite(relayPin2, HIGH);  // Turn relay 2 on
-    }
   }
-}
-
-void updateGreenhouse(float temperature, float humidity) {
-  bool retained = false;
-  int qos = 1;
-  bool dup = false;
-  String requestBody = "{\"ownedGreenhouse\":\"" + String(greenhouse_key) + "\",\"airTemperature\":" + String(temperature) + ",\"humidity\":" + String(humidity) + "}";
-  Serial.println("Greenhouse data created : " + requestBody);
-  mqttClient.beginMessage("greenhouseData:created", requestBody.length(), retained, qos, dup);
-  mqttClient.print(requestBody);
-  mqttClient.endMessage();
 }
