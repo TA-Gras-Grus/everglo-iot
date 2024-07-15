@@ -16,10 +16,10 @@ char pass[] = SECRET_PASS;  // your network password (use for WPA, or use as key
 WiFiClientSecure wifiClient;
 MqttClient mqttClient(wifiClient);
 
-const char broker[] = "02fa3ba5f83a4760bc66879c7e081d28.s1.eu.hivemq.cloud";
+const char broker[] = "a7701bd2b3e54353b8aeab74b9c7f322.s1.eu.hivemq.cloud";
 int port = 8883;
 const char topic[] = "greenhouse:updated";  // Subscribe to all topics
-const char* greenhouse_key = "2e3ae7b6-eee8-4b48-8871-c0c7c4659b15";
+const char* greenhouse_key = "86103b65-ef0d-4b75-a820-1d86b204288d";
 const int relayPin1 = D3;  // GPIO0
 
 void setup_wifi() {
@@ -28,7 +28,7 @@ void setup_wifi() {
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
-  WiFi.begin(ssid, pass);
+  WiFi.begin(ssid, pass);;
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -56,7 +56,7 @@ void setup() {
   mqttClient.setId("clientId");
 
   // You can provide a username and password for authentication
-  mqttClient.setUsernamePassword("everglo", "everglo2024");
+  mqttClient.setUsernamePassword("everglo", "Everglo2024");
 
   Serial.print("Attempting to connect to the MQTT broker: ");
   Serial.println(broker);

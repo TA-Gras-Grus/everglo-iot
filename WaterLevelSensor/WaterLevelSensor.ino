@@ -25,13 +25,11 @@ void loop() {
   buttonState2 = digitalRead(floatSensor2);
 
   if (buttonState1 == LOW && buttonState2 == LOW) {
-    Serial.println("Idup");
     waterStatus = 1;
     startPump();
   }
 
   if (buttonState1 == HIGH && buttonState2 == HIGH) {
-    Serial.println("mati");
     stopPump();
   }
 
@@ -39,11 +37,11 @@ void loop() {
 }
 
 void startPump() {
-  digitalWrite(relayPump, HIGH);
+  digitalWrite(relayPump, LOW);
 }
 
 void stopPump() {
-  digitalWrite(relayPump, LOW);
+  digitalWrite(relayPump, HIGH);
   if (waterStatus == 1) {
     startDosing();
     delay(5000);
@@ -53,11 +51,11 @@ void stopPump() {
 }
 
 void startDosing() {
-  digitalWrite(relayDosing1, HIGH);
-  digitalWrite(relayDosing2, HIGH);
+  digitalWrite(relayDosing1, LOW);
+  digitalWrite(relayDosing2, LOW);
 }
 
 void stopDosing() {
-  digitalWrite(relayDosing1, LOW);
-  digitalWrite(relayDosing2, LOW);
+  digitalWrite(relayDosing1, HIGH);
+  digitalWrite(relayDosing2, HIGH);
 }
