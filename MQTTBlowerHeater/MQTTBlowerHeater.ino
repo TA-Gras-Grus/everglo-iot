@@ -7,24 +7,17 @@
 #define DHTPIN D2      //pin DATA konek ke pin 2 Arduino
 #define DHTTYPE DHT11  //tipe sensor DHT11
 
-///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = SECRET_SSID;  // your network SSID (name)
-char pass[] = SECRET_PASS;  // your network password (use for WPA, or use as key for WEP)
-
-// To connect with SSL/TLS:
-// 1) Change WiFiClient to WiFiSSLClient.
-// 2) Change port value from 1883 to 8883.
-// 3) Change broker value to a server with a known SSL/TLS root certificate
-//    flashed in the WiFi module.
+char ssid[] = SECRET_SSID;  
+char pass[] = SECRET_PASS;  
 
 WiFiClientSecure wifiClient;
 MqttClient mqttClient(wifiClient);
 DHT dht(DHTPIN, DHTTYPE);  //set sensor + koneksi pin
 
-const char broker[] = "02fa3ba5f83a4760bc66879c7e081d28.s1.eu.hivemq.cloud";
+const char broker[] = "a7701bd2b3e54353b8aeab74b9c7f322.s1.eu.hivemq.cloud";
 int port = 8883;
 const char topic[] = "greenhouse:updated";  // Subscribe to all topics
-const char* greenhouse_key = "2e3ae7b6-eee8-4b48-8871-c0c7c4659b15";
+const char* greenhouse_key = "36fd1027-2ccb-487c-852e-cef22b820333";
 const int relayPin1 = D1;  // GPIO5
 const int relayPin2 = D3;  // GPIO0
 float humi, temp;          //deklarasi variabel
@@ -62,12 +55,11 @@ void setup() {
   }
   setup_wifi();
 
-  // You can provide a unique client ID, if not set the library uses Arduino-millis()
   // Each client must have a unique client ID
   mqttClient.setId("clientId");
 
   // You can provide a username and password for authentication
-  mqttClient.setUsernamePassword("everglo", "everglo2024");
+  mqttClient.setUsernamePassword("everglo", "Everglo2024");
 
   Serial.print("Attempting to connect to the MQTT broker: ");
   Serial.println(broker);
@@ -151,7 +143,7 @@ void onMqttMessage(int messageSize) {
   }
 
   // Extract values
-  const char* greenhouseId = doc["greenhouseId"];
+  const char* greenhouseId = doc["heaterBlowerDevice"];
   bool statusBlower = doc["statusBlower"];
   bool statusHeater = doc["statusHeater"];
   // Compare greenhouseId with greenhouse_key
@@ -177,7 +169,7 @@ void updateGreenhouse(float temperature, float humidity) {
   bool retained = false;
   int qos = 1;
   bool dup = false;
-  String requestBody = "{\"ownedGreenhouse\":\"" + String(greenhouse_key) + "\",\"airTemperature\":" + String(temperature) + ",\"humidity\":" + String(humidity) + "}";
+  String requestBody = "{\"deviceId\":\"" + String(greenhouse_key) + "\",\"airTemperature\":" + String(temperature) + ",\"humidity\":" + String(humidity) + "}";
   Serial.println("Greenhouse data created : " + requestBody);
   mqttClient.beginMessage("greenhouseData:created", requestBody.length(), retained, qos, dup);
   mqttClient.print(requestBody);

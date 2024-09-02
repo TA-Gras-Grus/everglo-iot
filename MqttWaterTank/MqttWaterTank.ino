@@ -4,15 +4,8 @@
 #include <ArduinoJson.h>
 #include "arduino_secrets.h"
 
-///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = SECRET_SSID;  // your network SSID (name)
-char pass[] = SECRET_PASS;  // your network password (use for WPA, or use as key for WEP)
-
-// To connect with SSL/TLS:
-// 1) Change WiFiClient to WiFiSSLClient.
-// 2) Change port value from 1883 to 8883.
-// 3) Change broker value to a server with a known SSL/TLS root certificate
-//    flashed in the WiFi module.
+char ssid[] = SECRET_SSID;  
+char pass[] = SECRET_PASS;  
 
 WiFiClientSecure wifiClient;
 MqttClient mqttClient(wifiClient);
@@ -20,7 +13,7 @@ MqttClient mqttClient(wifiClient);
 const char broker[] = "a7701bd2b3e54353b8aeab74b9c7f322.s1.eu.hivemq.cloud";
 int port = 8883;
 const char topic[] = "greenhouse:updated";  // Subscribe to all topics
-const char* greenhouse_key = "86103b65-ef0d-4b75-a820-1d86b204288d";
+const char* greenhouse_key = "2d6221b2-6c0a-4fa8-876a-55d2f5ce6de7";
 const int floatSensor1 = D4;
 const int floatSensor2 = D3;
 int buttonState1 = 1;  //reads pushbutton status
@@ -69,11 +62,8 @@ void setup() {
   }
   setup_wifi();
 
-  // You can provide a unique client ID, if not set the library uses Arduino-millis()
-  // Each client must have a unique client ID
   mqttClient.setId("waterTank");
 
-  // You can provide a username and password for authentication
   mqttClient.setUsernamePassword("everglo", "Everglo2024");
 
   Serial.print("Attempting to connect to the MQTT broker: ");
@@ -105,13 +95,10 @@ void setup() {
 
 
 void loop() {
-  // call poll() regularly to allow the library to receive MQTT messages and
-  // send MQTT keep alives which avoids being disconnected by the broker
   mqttClient.poll();
   unsigned long currentMillis = millis();
 
   if (currentMillis - previousMillis >= interval) {
-    // save the last time a message was sent
     previousMillis = currentMillis;
 
     // Tambahkan pembacaan EC dan PPM dari sensor EC
@@ -131,7 +118,7 @@ void loop() {
 
     // Cek dan kirim data dari sensor EC jika terbaca dan tidak bernilai 0
     if (!isnan(ecValue) && !isnan(ppmValue) && !(ecValue == 0 && ppmValue == 0)) {
-      if (ppmValue < 2000) {
+      if (ppmValue < 150) {
         startDosing();
       } else {
         stopDosing();
@@ -186,7 +173,7 @@ void updateValue(float ecValue, float ppmValue) {
   bool retained = false;
   int qos = 1;
   bool dup = false;
-  String requestBody = "{\"greenhouseId\":\"" + String(greenhouse_key) + "\",\"ec\":" + String(ecValue) + ",\"ppm\":" + String(ppmValue) + "}";
+  String requestBody = "{\"deviceId\":\"" + String(greenhouse_key) + "\",\"ec\":" + String(ecValue) + ",\"ppm\":" + String(ppmValue) + "}";
   Serial.println("Greenhouse updated : " + requestBody);
   mqttClient.beginMessage("greenhouse-iot:updated", requestBody.length(), retained, qos, dup);
   mqttClient.print(requestBody);
@@ -198,7 +185,7 @@ void startPump() {
   bool retained = false;
   int qos = 1;
   bool dup = false;
-  String requestBody = "{\"greenhouseId\":\"" + String(greenhouse_key) + "\",\"statusWaterTank\":false}";
+  String requestBody = "{\"deviceId\":\"" + String(greenhouse_key) + "\",\"statusWaterTank\":false}";
   Serial.println("Water level updated : " + requestBody);
   mqttClient.beginMessage("greenhouse-iot:updated", requestBody.length(), retained, qos, dup);
   mqttClient.print(requestBody);
@@ -210,7 +197,7 @@ void stopPump() {
   bool retained = false;
   int qos = 1;
   bool dup = false;
-  String requestBody = "{\"greenhouseId\":\"" + String(greenhouse_key) + "\",\"statusWaterTank\":true}";
+  String requestBody = "{\"deviceId\":\"" + String(greenhouse_key) + "\",\"statusWaterTank\":true}";
   Serial.println("Water level updated : " + requestBody);
   mqttClient.beginMessage("greenhouse-iot:updated", requestBody.length(), retained, qos, dup);
   mqttClient.print(requestBody);

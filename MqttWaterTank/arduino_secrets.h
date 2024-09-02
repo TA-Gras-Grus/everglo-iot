@@ -1,2 +1,2 @@
-#define SECRET_SSID "Jembut"
-#define SECRET_PASS "katsugosong"
+#define SECRET_SSID "everglo"
+#define SECRET_PASS "11223344"

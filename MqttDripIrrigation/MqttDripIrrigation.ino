@@ -3,15 +3,8 @@
 #include <ArduinoJson.h>
 #include "arduino_secrets.h"
 
-///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = SECRET_SSID;  // your network SSID (name)
-char pass[] = SECRET_PASS;  // your network password (use for WPA, or use as key for WEP)
-
-// To connect with SSL/TLS:
-// 1) Change WiFiClient to WiFiSSLClient.
-// 2) Change port value from 1883 to 8883.
-// 3) Change broker value to a server with a known SSL/TLS root certificate
-//    flashed in the WiFi module.
+char ssid[] = SECRET_SSID; 
+char pass[] = SECRET_PASS; 
 
 WiFiClientSecure wifiClient;
 MqttClient mqttClient(wifiClient);
@@ -19,7 +12,7 @@ MqttClient mqttClient(wifiClient);
 const char broker[] = "a7701bd2b3e54353b8aeab74b9c7f322.s1.eu.hivemq.cloud";
 int port = 8883;
 const char topic[] = "greenhouse:updated";  // Subscribe to all topics
-const char* greenhouse_key = "86103b65-ef0d-4b75-a820-1d86b204288d";
+const char* greenhouse_key = "e0454bb7-5683-4a65-a237-e5952849e851";
 const int relayPin1 = D3;  // GPIO0
 
 void setup_wifi() {
@@ -51,11 +44,8 @@ void setup() {
   }
   setup_wifi();
 
-  // You can provide a unique client ID, if not set the library uses Arduino-millis()
-  // Each client must have a unique client ID
   mqttClient.setId("clientId");
 
-  // You can provide a username and password for authentication
   mqttClient.setUsernamePassword("everglo", "Everglo2024");
 
   Serial.print("Attempting to connect to the MQTT broker: ");
@@ -125,7 +115,7 @@ void onMqttMessage(int messageSize) {
   }
 
   // Extract values
-  const char* greenhouseId = doc["greenhouseId"];
+  const char* greenhouseId = doc["dripIrrigationDevice"];
   bool statusWaterFlow = doc["statusWaterFlow"];
   // Compare greenhouseId with greenhouse_key
   if (strcmp(greenhouseId, greenhouse_key) == 0) {
